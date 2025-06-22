@@ -6,7 +6,6 @@ type WebMapWithClickProps = {
 
 export default function WebMapWithClick({ onSelectPoint }: WebMapWithClickProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const popupRef = useRef<any>(null); // Leaflet popup reference
 
   useEffect(() => {
@@ -15,40 +14,30 @@ export default function WebMapWithClick({ onSelectPoint }: WebMapWithClickProps)
 
     if (!mapRef.current) return;
 
-    const map = L.map(mapRef.current).setView([40.7128, -74.006], 13);
+    const map = L.map(mapRef.current).setView([40.7128, -74.006], 13); // New York as default center
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map);
 
-    const onMouseDown = (e: any) => {
-      pressTimerRef.current = setTimeout(() => {
-        const latlng = e.latlng;
+    // Right-click to select a point
+    map.on('contextmenu', (e: any) => {
+      const latlng = e.latlng;
 
-        // Create or move popup
-        const popupContent = `Selected location:<br>${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
-        if (popupRef.current) {
-          popupRef.current.setLatLng(latlng).setContent(popupContent).openOn(map);
-        } else {
-          popupRef.current = L.popup({ closeOnClick: false, autoClose: false })
-            .setLatLng(latlng)
-            .setContent(popupContent)
-            .openOn(map);
-        }
+      const popupContent = `Selected location:<br>${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
 
-        onSelectPoint(latlng.lat, latlng.lng);
-      }, 500); // 500ms long press
-    };
-
-    const clearTimer = () => {
-      if (pressTimerRef.current) {
-        clearTimeout(pressTimerRef.current);
-        pressTimerRef.current = null;
+      if (popupRef.current) {
+        popupRef.current.setLatLng(latlng).setContent(popupContent).openOn(map);
+      } else {
+        popupRef.current = L.popup({ closeOnClick: false, autoClose: false })
+          .setLatLng(latlng)
+          .setContent(popupContent)
+          .openOn(map);
       }
-    };
 
-    map.on('mousedown', onMouseDown);
-    map.on('mouseup', clearTimer);
-    map.on('mouseout', clearTimer);
+      // Call parent callback
+      onSelectPoint(latlng.lat, latlng.lng);
+    });
 
     return () => {
       map.remove();

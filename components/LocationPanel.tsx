@@ -1,19 +1,55 @@
+import Constants from 'expo-constants';
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AssetExample from './AssetExample';
+type TransitStop = {
+  stop_name?: string;
+  onestop_id: string;
+  stop_type?: string;
+  location_type?: number;
+  //distance?: number;
+  geometry: {
+    coordinates: [number, number]; // [lon, lat]
+  };
+};
 
 export default function LocationPanel() {
   const [address, setAddress] = useState('______________');
   const [showStationTable, setShowStationTable] = useState(false);
+  const [stations, setStations] = useState<TransitStop[]>([]);
+  const [currentCoord, setCurrentCoord] = useState<[number, number] | null>(null);
+
+
+  const formatLocationType = (type?: number): string => {
+    switch (type) {
+      case 0:
+      case undefined:
+        return 'Stop/Platform';
+      case 1:
+        return 'Station';
+      case 2:
+        return 'Entrance/Exit';
+      case 3:
+        return 'Node';
+      case 4:
+        return 'Boarding Area';
+      default:
+        return 'Unknown';
+    }
+  };
+
 
   const toggleStationTable = () => {
     setShowStationTable(prev => !prev);
   };
-
+  const apiKey = Constants.expoConfig?.extra?.transitlandApiKey;
   const handleSelectPoint = useCallback(async (lat: number, lng: number) => {
     setAddress('Loading...');
+    setCurrentCoord([lat, lng]);
+    setStations([]);
 
     try {
+      // Reverse geocoding
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&countrycodes=us`
       );
@@ -24,33 +60,114 @@ export default function LocationPanel() {
       } else {
         setAddress('No nearby address found');
       }
+
+      // TransitLand API call
+      const radius = 500; // meters
+      const transitRes = await fetch(
+        `https://transit.land/api/v2/rest/stops?lat=${lat}&lon=${lng}&radius=${radius}`,
+        { headers: { 'apikey': apiKey } }
+      );
+      const transitData = await transitRes.json();
+      const allStops: TransitStop[] = transitData.stops || [];
+
+      if (currentCoord) {
+        const [lat1, lon1] = [lat, lng];
+        const stopsWithDistance = allStops.map((stop) => {
+          const [lon2, lat2] = stop.geometry.coordinates;
+          const distance = parseFloat(computeDistance(lat1, lon1, lat2, lon2));
+          return { ...stop, distance };
+        });
+
+        const sorted = allStops
+          .map(stop => ({
+            stop,
+            dist: parseFloat(
+              computeDistance(lat, lng, stop.geometry.coordinates[1], stop.geometry.coordinates[0])
+            ),
+          }))
+          .sort((a, b) => a.dist - b.dist)
+          .slice(0, 5)
+          .map(entry => entry.stop);
+
+        setStations(sorted);
+
+        const top5 = sorted.slice(0, 5);
+        setStations(top5);
+      } else {
+        setStations(allStops.slice(0, 5)); // fallback
+      }
+
     } catch (error) {
-      setAddress('Error fetching address');
+      console.error(error);
+      setAddress('Error fetching address or stations');
     }
   }, []);
 
+  const computeDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371; // km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return (R * c * 0.621371).toFixed(2); // miles
+  };
+
+  const formatStopType = (raw?: string) => {
+    switch (raw) {
+      case 'stop':
+        return 'Bus Stop';
+      case 'platform':
+        return 'Train/Metro Platform';
+      case 'entrance':
+        return 'Station Entrance';
+      default:
+        return raw || 'Unknown';
+    }
+  };
+
+
   return (
-    <View>
+    <ScrollView>
       <AssetExample onSelectPoint={handleSelectPoint} />
 
-      <Text style={styles.paragraph}>
-        Address: {address}
-      </Text>
+      <Text style={styles.paragraph}>Address: {address}</Text>
 
       {showStationTable && (
-        <View style={styles.tableContainer}>
+        <ScrollView style={styles.tableContainer}>
           <Text style={styles.tableHeader}>Nearest Stations</Text>
           <View style={styles.tableRow}>
             <Text style={styles.tableCell}>Station</Text>
             <Text style={styles.tableCell}>Distance</Text>
             <Text style={styles.tableCell}>Type</Text>
           </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>Sample Station</Text>
-            <Text style={styles.tableCell}>0.3 mi</Text>
-            <Text style={styles.tableCell}>Subway</Text>
-          </View>
-        </View>
+          {stations.length === 0 ? (
+            <Text style={{ textAlign: 'center', marginTop: 10 }}>No stations found.</Text>
+          ) : (
+            stations.map((stop) => {
+              //const distance = stop.distance;
+              return (
+                <View key={stop.onestop_id} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>{stop.stop_name || 'Unnamed Station'}</Text>
+                  <Text style={styles.tableCell}>
+                    {currentCoord
+                      ? computeDistance(
+                        currentCoord[0],
+                        currentCoord[1],
+                        stop.geometry.coordinates[1],
+                        stop.geometry.coordinates[0]
+                      ) + ' mi'
+                      : '?'}
+                  </Text>
+                  <Text style={styles.tableCell}>{formatLocationType(stop.location_type)}</Text>
+                </View>
+              );
+            })
+          )}
+        </ScrollView>
       )}
 
       <View style={styles.bottomColumn}>
@@ -64,7 +181,7 @@ export default function LocationPanel() {
           <Text style={styles.funcText}>Nearest Real Estate [Under Construction]</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -91,7 +208,7 @@ const styles = StyleSheet.create({
   },
   funcText: {
     color: 'black',
-    fontSize: 25,
+    fontSize: 20,
     margin: 5,
   },
   tableContainer: {
@@ -99,6 +216,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     padding: 10,
     borderRadius: 8,
+    maxHeight: 300,
   },
   tableHeader: {
     fontWeight: 'bold',
@@ -113,7 +231,7 @@ const styles = StyleSheet.create({
   },
   tableCell: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
   },
 });

@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingVertical: 16,
     elevation: 4, // shadow on Android
     shadowColor: '#000', // shadow on iOS
     shadowOpacity: 0.1,
