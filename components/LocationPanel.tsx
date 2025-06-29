@@ -2,6 +2,10 @@ import Constants from 'expo-constants';
 import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AssetExample from './AssetExample';
+import { useSavedCoords } from './SavedCoordsContext';
+
+
+
 type TransitStop = {
   stop_name?: string;
   onestop_id: string;
@@ -18,7 +22,7 @@ export default function LocationPanel() {
   const [showStationTable, setShowStationTable] = useState(false);
   const [stations, setStations] = useState<TransitStop[]>([]);
   const [currentCoord, setCurrentCoord] = useState<[number, number] | null>(null);
-
+  const { saveCoord } = useSavedCoords();
 
   const formatLocationType = (type?: number): string => {
     switch (type) {
@@ -173,6 +177,17 @@ export default function LocationPanel() {
       <View style={styles.bottomColumn}>
         <TouchableOpacity style={styles.funcButton} onPress={toggleStationTable}>
           <Text style={styles.funcText}>Nearest Stations</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.funcButton}
+          onPress={() => {
+            if (currentCoord) {
+              const [lat, lng] = currentCoord;
+              saveCoord({ lat, lng });
+            }
+          }}
+        >
+          <Text style={styles.funcText}>Save Location</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
