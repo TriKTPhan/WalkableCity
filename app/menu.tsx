@@ -18,6 +18,7 @@ export default function MenuScreen() {
                             <Text>Lat: {coord.lat.toFixed(5)}</Text>
                             <Text>Lng: {coord.lng.toFixed(5)}</Text>
                         </View>
+                        <Text style={styles.addressText}>{coord.address}</Text>
                         <TouchableOpacity
                             onPress={() => removeCoord(index)}
                             style={styles.deleteButton}
@@ -25,6 +26,7 @@ export default function MenuScreen() {
                             <Text style={styles.deleteText}>Delete</Text>
                         </TouchableOpacity>
                     </View>
+
                 ))
             )}
         </ScrollView>
@@ -56,4 +58,12 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
+    addressText: {
+        fontSize: 14,
+        fontStyle: 'italic',
+        marginTop: 4,
+        marginBottom: 6,
+        color: '#555',
+    },
+
 });

@@ -183,7 +183,8 @@ export default function LocationPanel() {
           onPress={() => {
             if (currentCoord) {
               const [lat, lng] = currentCoord;
-              saveCoord({ lat, lng });
+              saveCoord({ lat, lng, address });
+
             }
           }}
         >

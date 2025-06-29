@@ -1,7 +1,8 @@
 // components/SavedCoordsContext.tsx
 import React, { createContext, useContext, useState } from 'react';
 
-type Coord = { lat: number; lng: number };
+type Coord = { lat: number; lng: number; address: string };
+
 
 type SavedCoordsContextType = {
     savedCoords: Coord[];
@@ -9,20 +10,20 @@ type SavedCoordsContextType = {
     removeCoord: (index: number) => void;
 };
 
+
 const SavedCoordsContext = createContext<SavedCoordsContextType | undefined>(undefined);
 
 export const SavedCoordsProvider = ({ children }: { children: React.ReactNode }) => {
     const [savedCoords, setSavedCoords] = useState<Coord[]>([]);
-
+    
     const saveCoord = (coord: Coord) => {
         setSavedCoords(prev => {
             const newCoords = [...prev, coord];
-            if (newCoords.length > 20) {
-                newCoords.shift(); // remove the oldest entry
-            }
+            if (newCoords.length > 20) newCoords.shift();
             return newCoords;
         });
     };
+
 
     const removeCoord = (index: number) => {
         setSavedCoords(prev => prev.filter((_, i) => i !== index));
