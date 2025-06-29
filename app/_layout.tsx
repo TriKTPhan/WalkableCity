@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { SavedCoordsProvider } from '@/components/SavedCoordsContext'; // ✅ import context
+import { SavedCoordsProvider } from '@/components/SavedCoordsContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function RootLayout() {
@@ -17,11 +17,11 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <SavedCoordsProvider> {/* ✅ wrap entire navigation */}
+      <SavedCoordsProvider> {}
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
-          <Stack.Screen name="menu" options={{ title: 'Menu' }} /> {/* ✅ optional */}
+          <Stack.Screen name="menu" options={{ title: 'Menu' }} /> {}
         </Stack>
       </SavedCoordsProvider>
       <StatusBar style="auto" />
