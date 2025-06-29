@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    height: 60,
+    height: 50,
     backgroundColor: 'white',
     flexDirection: 'row',
     alignItems: 'center',
