@@ -2,30 +2,31 @@ import React, { useEffect, useRef } from 'react';
 
 type WebMapWithClickProps = {
   onSelectPoint: (lat: number, lng: number) => void;
-  mapRef: React.RefObject<any>;
+  mapRef: React.RefObject<any>; // This is the prop for exposing Leaflet map
   onMapReady: () => void;
 };
 
-
-
-export default function WebMapWithClick({ onSelectPoint, onMapReady }: WebMapWithClickProps) {
-  const mapRef = useRef<HTMLDivElement | null>(null);
+export default function WebMapWithClick({ onSelectPoint, mapRef, onMapReady }: WebMapWithClickProps) {
+  const mapContainerRef = useRef<HTMLDivElement | null>(null); // This is for the actual DOM element
   const popupRef = useRef<any>(null); // Leaflet popup reference
 
   useEffect(() => {
     const L = require('leaflet');
     require('leaflet/dist/leaflet.css');
 
-    if (!mapRef.current) return;
+    if (!mapContainerRef.current) return;
 
-    const map = L.map(mapRef.current).setView([40.7128, -74.006], 13); // New York as default center
+    const map = L.map(mapContainerRef.current).setView([40.7128, -74.006], 13); // Default to NYC
+
+    // Expose the Leaflet map to the parent
     mapRef.current = map;
     onMapReady();
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map);
 
-    // Right-click to select a point
+    // Right-click (contextmenu) to select a point
     map.on('contextmenu', (e: any) => {
       const latlng = e.latlng;
 
@@ -40,7 +41,6 @@ export default function WebMapWithClick({ onSelectPoint, onMapReady }: WebMapWit
           .openOn(map);
       }
 
-      // Call parent callback
       onSelectPoint(latlng.lat, latlng.lng);
     });
 
@@ -49,5 +49,5 @@ export default function WebMapWithClick({ onSelectPoint, onMapReady }: WebMapWit
     };
   }, []);
 
-  return <div ref={mapRef} style={{ height: '100%', width: '100%' }} />;
+  return <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />;
 }
