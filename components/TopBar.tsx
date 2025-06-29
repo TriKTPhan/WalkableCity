@@ -1,12 +1,13 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
 export default function App() {
+  const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
       {/* Top Bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity style={styles.iconButton}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/menu')}>
           {/* Placeholder for menu icon */}
           <Text style={styles.iconText}>≡</Text>
         </TouchableOpacity>

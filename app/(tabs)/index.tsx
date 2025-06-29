@@ -1,12 +1,9 @@
-import { registerRootComponent } from 'expo';
-import React, { useState } from 'react';
-
+import React from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { Card, Provider as PaperProvider } from 'react-native-paper';
 
 import LocationPanel from '@/components/LocationPanel';
 import TopBar from '@/components/TopBar';
-const [address, setAddress] = useState('______________');
 
 /* const handleSelectPoint = useCallback(async (lat: number, lng: number) => {
   setAddress('Loading...');
@@ -28,31 +25,7 @@ const [address, setAddress] = useState('______________');
 }, []); */
 
 
-function MainApp() {
-  // const [address, setAddress] = useState('______________');
-  // const [showStationTable, setShowStationTable] = useState(false);
-  // const toggleStationTable = () => {
-  //   setShowStationTable(prev => !prev);
-  // };
-  // const handleSelectPoint = useCallback(async (lat: number, lng: number) => {
-  //   setAddress('Loading...');
-
-  //   try {
-  //     const response = await fetch(
-  //       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&countrycodes=us`
-  //     );
-  //     const data = await response.json();
-
-  //     if (data && data.display_name) {
-  //       setAddress(data.display_name);
-  //     } else {
-  //       setAddress('No nearby address found');
-  //     }
-  //   } catch (error) {
-  //     setAddress('Error fetching address');
-  //   }
-  // }, []);
-
+export default function HomeScreen() {
   return (
     <PaperProvider>
       <SafeAreaView style={styles.container}>
@@ -64,8 +37,6 @@ function MainApp() {
     </PaperProvider>
   );
 }
-
-
 
 
 
@@ -125,4 +96,3 @@ const styles = StyleSheet.create({
 
 });
 
-registerRootComponent(MainApp);
