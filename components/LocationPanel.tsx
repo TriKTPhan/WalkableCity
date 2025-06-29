@@ -23,6 +23,7 @@ export default function LocationPanel() {
   const mapRef = useRef<any>(null); // To center the map externally
   const hasCenteredRef = useRef(false);
   const [mapReady, setMapReady] = useState(false);
+  const popupRef = useRef<any>(null);
 
   const toggleStationTable = () => {
     setShowStationTable(prev => !prev);
@@ -128,7 +129,37 @@ export default function LocationPanel() {
 
   useEffect(() => {
     if (mapReady && pendingViewCoord && mapRef.current) {
-      mapRef.current.setView([pendingViewCoord.lat, pendingViewCoord.lng], 13);
+      const L = require('leaflet');
+
+      const map = mapRef.current;
+      const latlng = pendingViewCoord;
+
+      map.setView([latlng.lat, latlng.lng], 13);
+
+      // Show popup
+      const popupContent = `Selected location:<br>${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+
+      if (popupRef.current) {
+        popupRef.current.setLatLng(latlng).setContent(popupContent).openOn(map);
+      } else {
+        popupRef.current = L.popup({ closeOnClick: false, autoClose: false })
+          .setLatLng(latlng)
+          .setContent(popupContent)
+          .openOn(map);
+      }
+
+      // 🟡 Trigger full address + station logic
+      handleSelectPoint(latlng.lat, latlng.lng);
+
+
+      if (popupRef.current) {
+        popupRef.current.setLatLng(latlng).setContent(popupContent).openOn(map);
+      } else {
+        popupRef.current = L.popup({ closeOnClick: false, autoClose: false })
+          .setLatLng(latlng)
+          .setContent(popupContent)
+          .openOn(map);
+      }
     }
   }, [mapReady, pendingViewCoord]);
 
