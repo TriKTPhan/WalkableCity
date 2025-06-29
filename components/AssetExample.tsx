@@ -37,7 +37,8 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
     borderRadius: 10,
-    marginVertical: 10,
+    padding: 10,
+    marginTop: 30,
   },
   coords: {
     textAlign: 'center',

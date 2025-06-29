@@ -13,10 +13,8 @@ export default function App() {
 
         <Text style={styles.title}>Distance Finder</Text>
 
-        <TouchableOpacity style={styles.iconButton}>
-          {/* Placeholder for account icon */}
-          <Text style={styles.iconText}>👤</Text>
-        </TouchableOpacity>
+        <View style={styles.placeholder} />
+
       </View>
 
 
@@ -40,10 +38,11 @@ const styles = StyleSheet.create({
     shadowColor: '#000', // shadow on iOS
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
+    padding: 12,
   },
   iconButton: {
     backgroundColor: 'orange',
-    padding: 8,
+    padding: 2,
   },
   iconText: {
     fontSize: 24,
@@ -52,4 +51,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
+  placeholder: {
+
+  }
 });

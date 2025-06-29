@@ -174,12 +174,6 @@ export default function LocationPanel() {
         <TouchableOpacity style={styles.funcButton} onPress={toggleStationTable}>
           <Text style={styles.funcText}>Nearest Stations</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.funcButton}>
-          <Text style={styles.funcText}>Nearby Businesses [Under Construction]</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.funcButton}>
-          <Text style={styles.funcText}>Nearest Real Estate [Under Construction]</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );
