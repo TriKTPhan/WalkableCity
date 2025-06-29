@@ -21,6 +21,8 @@ export default function LocationPanel() {
   const [currentCoord, setCurrentCoord] = useState<[number, number] | null>(null);
   const { saveCoord, pendingViewCoord } = useSavedCoords();
   const mapRef = useRef<any>(null); // To center the map externally
+  const hasCenteredRef = useRef(false);
+  const [mapReady, setMapReady] = useState(false);
 
   const toggleStationTable = () => {
     setShowStationTable(prev => !prev);
@@ -113,16 +115,32 @@ export default function LocationPanel() {
     }
   };
 
-  // 👇 Automatically center map if instructed from saved card
   useEffect(() => {
-    if (pendingViewCoord && mapRef.current) {
+    if (pendingViewCoord && mapRef.current && !hasCenteredRef.current) {
+      mapRef.current.setView([pendingViewCoord.lat, pendingViewCoord.lng], 13);
+      hasCenteredRef.current = true;
+    }
+  }, [pendingViewCoord, mapRef.current]);
+
+  useEffect(() => {
+    hasCenteredRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (mapReady && pendingViewCoord && mapRef.current) {
       mapRef.current.setView([pendingViewCoord.lat, pendingViewCoord.lng], 13);
     }
-  }, [pendingViewCoord]);
+  }, [mapReady, pendingViewCoord]);
+
 
   return (
     <ScrollView>
-      <AssetExample onSelectPoint={handleSelectPoint} mapRef={mapRef} />
+      <AssetExample
+        onSelectPoint={handleSelectPoint}
+        mapRef={mapRef}
+        onMapReady={() => setMapReady(true)}
+      />
+
 
       <Text style={styles.paragraph}>Address: {address}</Text>
 

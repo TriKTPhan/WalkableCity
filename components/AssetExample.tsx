@@ -4,12 +4,13 @@ import WebMapWithClick from './WebMapWithClick';
 
 type Props = {
   onSelectPoint: (lat: number, lng: number) => void;
-  mapRef: React.MutableRefObject<any>; 
+  mapRef: React.RefObject<any>;
+  onMapReady: () => void;
 };
 
-export default function AssetExample({ onSelectPoint, mapRef }: Props) {
+export default function AssetExample({ onSelectPoint, mapRef, onMapReady }: Props) {
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
-
+  
   const handleSelect = (lat: number, lng: number) => {
     setSelectedCoords({ lat, lng });
   };
@@ -22,8 +23,10 @@ export default function AssetExample({ onSelectPoint, mapRef }: Props) {
             handleSelect(lat, lng);
             onSelectPoint(lat, lng);
           }}
-          mapRef={mapRef} 
+          mapRef={mapRef}
+          onMapReady={onMapReady} 
         />
+
       ) : (
         <Text>Map supported on web only for now.</Text>
       )}
