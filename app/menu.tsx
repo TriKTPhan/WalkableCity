@@ -1,10 +1,13 @@
 // app/menu.tsx
 import { useSavedCoords } from '@/components/SavedCoordsContext';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function MenuScreen() {
-    const { savedCoords, removeCoord } = useSavedCoords();
+    const router = useRouter();
+    const { savedCoords, removeCoord, goToLocation } = useSavedCoords();
+
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -19,13 +22,27 @@ export default function MenuScreen() {
                             <Text>Lng: {coord.lng.toFixed(5)}</Text>
                         </View>
                         <Text style={styles.addressText}>{coord.address}</Text>
-                        <TouchableOpacity
-                            onPress={() => removeCoord(index)}
-                            style={styles.deleteButton}
-                        >
-                            <Text style={styles.deleteText}>Delete</Text>
-                        </TouchableOpacity>
+
+                        <View style={styles.buttonRow}>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    goToLocation({ lat: coord.lat, lng: coord.lng });
+                                    router.replace('/');
+                                }}
+                                style={styles.gotoButton}
+                            >
+                                <Text style={styles.gotoText}>Go to</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => removeCoord(index)}
+                                style={styles.deleteButton}
+                            >
+                                <Text style={styles.deleteText}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
+
 
                 ))
             )}
@@ -52,10 +69,11 @@ const styles = StyleSheet.create({
         backgroundColor: 'tomato',
         padding: 6,
         borderRadius: 4,
-        alignSelf: 'flex-end',
+        flex: 1,
     },
     deleteText: {
         color: 'white',
+        textAlign: 'center',
         fontWeight: 'bold',
     },
     addressText: {
@@ -65,5 +83,21 @@ const styles = StyleSheet.create({
         marginBottom: 6,
         color: '#555',
     },
-
+    gotoButton: {
+        backgroundColor: 'dodgerblue',
+        padding: 6,
+        borderRadius: 4,
+        flex: 1,
+        marginRight: 8,
+    },
+    gotoText: {
+        color: 'white',
+        textAlign: 'center',
+        fontWeight: 'bold',
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 8,
+    },
 });

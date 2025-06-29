@@ -4,9 +4,10 @@ import WebMapWithClick from './WebMapWithClick';
 
 type Props = {
   onSelectPoint: (lat: number, lng: number) => void;
+  mapRef: React.MutableRefObject<any>; 
 };
 
-export default function AssetExample({ onSelectPoint }: Props) {
+export default function AssetExample({ onSelectPoint, mapRef }: Props) {
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const handleSelect = (lat: number, lng: number) => {
@@ -16,16 +17,15 @@ export default function AssetExample({ onSelectPoint }: Props) {
   return (
     <View style={styles.container}>
       {Platform.OS === 'web' ? (
-        <>
-          <WebMapWithClick
-            onSelectPoint={(lat, lng) => {
-              handleSelect(lat, lng);
-              onSelectPoint(lat, lng);
-            }}
-          />
-        </>
+        <WebMapWithClick
+          onSelectPoint={(lat, lng) => {
+            handleSelect(lat, lng);
+            onSelectPoint(lat, lng);
+          }}
+          mapRef={mapRef} 
+        />
       ) : (
-        <Text>Map supported on native only for now.</Text>
+        <Text>Map supported on web only for now.</Text>
       )}
     </View>
   );

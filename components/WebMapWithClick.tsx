@@ -2,7 +2,9 @@ import React, { useEffect, useRef } from 'react';
 
 type WebMapWithClickProps = {
   onSelectPoint: (lat: number, lng: number) => void;
+  mapRef: React.MutableRefObject<any>;
 };
+
 
 export default function WebMapWithClick({ onSelectPoint }: WebMapWithClickProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -15,6 +17,7 @@ export default function WebMapWithClick({ onSelectPoint }: WebMapWithClickProps)
     if (!mapRef.current) return;
 
     const map = L.map(mapRef.current).setView([40.7128, -74.006], 13); // New York as default center
+    mapRef.current = map;
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',

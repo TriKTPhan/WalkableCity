@@ -1,17 +1,14 @@
 import Constants from 'expo-constants';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AssetExample from './AssetExample';
 import { useSavedCoords } from './SavedCoordsContext';
-
-
 
 type TransitStop = {
   stop_name?: string;
   onestop_id: string;
   stop_type?: string;
   location_type?: number;
-  //distance?: number;
   geometry: {
     coordinates: [number, number]; // [lon, lat]
   };
@@ -22,31 +19,15 @@ export default function LocationPanel() {
   const [showStationTable, setShowStationTable] = useState(false);
   const [stations, setStations] = useState<TransitStop[]>([]);
   const [currentCoord, setCurrentCoord] = useState<[number, number] | null>(null);
-  const { saveCoord } = useSavedCoords();
-
-  const formatLocationType = (type?: number): string => {
-    switch (type) {
-      case 0:
-      case undefined:
-        return 'Stop/Platform';
-      case 1:
-        return 'Station';
-      case 2:
-        return 'Entrance/Exit';
-      case 3:
-        return 'Node';
-      case 4:
-        return 'Boarding Area';
-      default:
-        return 'Unknown';
-    }
-  };
-
+  const { saveCoord, pendingViewCoord } = useSavedCoords();
+  const mapRef = useRef<any>(null); // To center the map externally
 
   const toggleStationTable = () => {
     setShowStationTable(prev => !prev);
   };
+
   const apiKey = Constants.expoConfig?.extra?.transitlandApiKey;
+
   const handleSelectPoint = useCallback(async (lat: number, lng: number) => {
     setAddress('Loading...');
     setCurrentCoord([lat, lng]);
@@ -86,7 +67,7 @@ export default function LocationPanel() {
           .map(stop => ({
             stop,
             dist: parseFloat(
-              computeDistance(lat, lng, stop.geometry.coordinates[1], stop.geometry.coordinates[0])
+              computeDistance(lat1, lon1, stop.geometry.coordinates[1], stop.geometry.coordinates[0])
             ),
           }))
           .sort((a, b) => a.dist - b.dist)
@@ -120,23 +101,28 @@ export default function LocationPanel() {
     return (R * c * 0.621371).toFixed(2); // miles
   };
 
-  const formatStopType = (raw?: string) => {
-    switch (raw) {
-      case 'stop':
-        return 'Bus Stop';
-      case 'platform':
-        return 'Train/Metro Platform';
-      case 'entrance':
-        return 'Station Entrance';
-      default:
-        return raw || 'Unknown';
+  const formatLocationType = (type?: number): string => {
+    switch (type) {
+      case 0:
+      case undefined: return 'Stop/Platform';
+      case 1: return 'Station';
+      case 2: return 'Entrance/Exit';
+      case 3: return 'Node';
+      case 4: return 'Boarding Area';
+      default: return 'Unknown';
     }
   };
 
+  // 👇 Automatically center map if instructed from saved card
+  useEffect(() => {
+    if (pendingViewCoord && mapRef.current) {
+      mapRef.current.setView([pendingViewCoord.lat, pendingViewCoord.lng], 13);
+    }
+  }, [pendingViewCoord]);
 
   return (
     <ScrollView>
-      <AssetExample onSelectPoint={handleSelectPoint} />
+      <AssetExample onSelectPoint={handleSelectPoint} mapRef={mapRef} />
 
       <Text style={styles.paragraph}>Address: {address}</Text>
 
@@ -151,25 +137,22 @@ export default function LocationPanel() {
           {stations.length === 0 ? (
             <Text style={{ textAlign: 'center', marginTop: 10 }}>No stations found.</Text>
           ) : (
-            stations.map((stop) => {
-              //const distance = stop.distance;
-              return (
-                <View key={stop.onestop_id} style={styles.tableRow}>
-                  <Text style={styles.tableCell}>{stop.stop_name || 'Unnamed Station'}</Text>
-                  <Text style={styles.tableCell}>
-                    {currentCoord
-                      ? computeDistance(
-                        currentCoord[0],
-                        currentCoord[1],
-                        stop.geometry.coordinates[1],
-                        stop.geometry.coordinates[0]
-                      ) + ' mi'
-                      : '?'}
-                  </Text>
-                  <Text style={styles.tableCell}>{formatLocationType(stop.location_type)}</Text>
-                </View>
-              );
-            })
+            stations.map((stop) => (
+              <View key={stop.onestop_id} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{stop.stop_name || 'Unnamed Station'}</Text>
+                <Text style={styles.tableCell}>
+                  {currentCoord
+                    ? computeDistance(
+                      currentCoord[0],
+                      currentCoord[1],
+                      stop.geometry.coordinates[1],
+                      stop.geometry.coordinates[0]
+                    ) + ' mi'
+                    : '?'}
+                </Text>
+                <Text style={styles.tableCell}>{formatLocationType(stop.location_type)}</Text>
+              </View>
+            ))
           )}
         </ScrollView>
       )}
@@ -184,7 +167,6 @@ export default function LocationPanel() {
             if (currentCoord) {
               const [lat, lng] = currentCoord;
               saveCoord({ lat, lng, address });
-
             }
           }}
         >
